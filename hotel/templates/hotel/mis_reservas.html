@@ -1,0 +1,63 @@
+<!-- hotel/templates/hotel/mis_reservas.html -->
+{% extends 'hotel/base.html' %}
+
+{% block titulo %}Mis Reservas - Gestor Hotel{% endblock %}
+
+{% block contenido %}
+<h2 class="mb-4">
+    <i class="fas fa-calendar-check me-2"></i>Mis Reservas
+</h2>
+
+{% if reservas %}
+    <div class="row">
+        {% for reserva in reservas %}
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Reserva #{{ reserva.id }}</h6>
+                        <span class="badge {% if reserva.estado == 'confirmada' %}bg-success{% elif reserva.estado == 'pendiente' %}bg-warning{% elif reserva.estado == 'cancelada' %}bg-danger{% else %}bg-info{% endif %}">
+                            {{ reserva.get_estado_display }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Habitación {{ reserva.habitacion.numero }}</h5>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <p class="mb-1"><strong>Tipo:</strong> {{ reserva.habitacion.tipo }}</p>
+                                <p class="mb-1"><strong>Entrada:</strong> {{ reserva.fecha_entrada|date:"d/m/Y" }}</p>
+                                <p class="mb-1"><strong>Salida:</strong> {{ reserva.fecha_salida|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1"><strong>Huéspedes:</strong> {{ reserva.numero_huespedes }}</p>
+                                <p class="mb-1"><strong>Noches:</strong> {{ reserva.calcular_noches }}</p>
+                                <p class="mb-1"><strong>Total:</strong> ${{ reserva.precio_total }}</p>
+                            </div>
+                        </div>
+                        {% if reserva.comentarios %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Comentarios:</strong> {{ reserva.comentarios }}
+                                </small>
+                            </div>
+                        {% endif %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Reservado el {{ reserva.fecha_reserva|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+        <h4>No tienes reservas</h4>
+        <p class="text-muted">Explora nuestras habitaciones disponibles y haz tu primera reserva.</p>
+        <a href="{% url 'lista_habitaciones' %}" class="btn btn-primary">
+            <i class="fas fa-bed me-1"></i>Ver Habitaciones
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'hotel/base.html' %}
+
+{% block titulo %}Gestionar Reservas - Admin{% endblock %}
+
+{% block contenido %}
+<div class="admin-controls">
+    <h2 class="text-danger mb-4">
+        <i class="fas fa-cog me-2"></i>Panel de Administración - Gestionar Reservas
+    </h2>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="fas fa-filter me-2"></i>Filtros de Reservas
+        </h5>
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="estado" class="form-label">Estado de Reserva</label>
+                <select name="estado" id="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {% if estado_seleccionado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="confirmada" {% if estado_seleccionado == 'confirmada' %}selected{% endif %}>Confirmada</option>
+                    <option value="cancelada" {% if estado_seleccionado == 'cancelada' %}selected{% endif %}>Cancelada</option>
+                    <option value="completada" {% if estado_seleccionado == 'completada' %}selected{% endif %}>Completada</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'gestionar_reservas' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas rápidas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h5>{{ reservas|length }}</h5>
+                <small>Total Reservas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h5>{% for r in reservas %}{% if r.estado == 'confirmada' %}{{ forloop.counter }}{% endif %}{% endfor %}</h5>
+                <small>Confirmadas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                <h5>{% for r in reservas %}{% if r.estado == 'completada' %}{{ forloop.counter }}{% endif %}{% endfor %}</h5>
+                <small>Completadas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-times-circle fa-2x mb-2"></i>
+                <h5>{% for r in reservas %}{% if r.estado == 'cancelada' %}{{ forloop.counter }}{% endif %}{% endfor %}</h5>
+                <small>Canceladas</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de reservas -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Lista de Reservas
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if reservas %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Habitación</th>
+                            <th>Fechas</th>
+                            <th>Huéspedes</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reserva in reservas %}
+                            <tr>
+                                <td><strong>#{{ reserva.id }}</strong></td>
+                                <td>
+                                    <i class="fas fa-user me-1"></i>{{ reserva.cliente.username }}
+                                    {% if reserva.cliente.first_name %}
+                                        <br><small class="text-muted">{{ reserva.cliente.first_name }} {{ reserva.cliente.last_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ reserva.habitacion.numero }}</strong>
+                                    <br><small class="text-muted">{{ reserva.habitacion.tipo }}</small>
+                                </td>
+                                <td>
+                                    <strong>Entrada:</strong> {{ reserva.fecha_entrada|date:"d/m/Y" }}
+                                    <br><strong>Salida:</strong> {{ reserva.fecha_salida|date:"d/m/Y" }}
+                                    <br><small class="text-muted">{{ reserva.calcular_noches }} noches</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{ reserva.numero_huespedes }}</span>
+                                </td>
+                                <td>
+                                    <strong>${{ reserva.precio_total }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge {% if reserva.estado == 'confirmada' %}bg-success{% elif reserva.estado == 'pendiente' %}bg-warning{% elif reserva.estado == 'cancelada' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {{ reserva.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{% url 'cambiar_estado_reserva' reserva.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <div class="input-group input-group-sm">
+                                            <select name="nuevo_estado" class="form-select form-select-sm" required>
+                                                <option value="">Cambiar estado...</option>
+                                                <option value="pendiente" {% if reserva.estado == 'pendiente' %}disabled{% endif %}>Pendiente</option>
+                                                <option value="confirmada" {% if reserva.estado == 'confirmada' %}disabled{% endif %}>Confirmada</option>
+                                                <option value="cancelada" {% if reserva.estado == 'cancelada' %}disabled{% endif %}>Cancelada</option>
+                                                <option value="completada" {% if reserva.estado == 'completada' %}disabled{% endif %}>Completada</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <button class="btn btn-sm btn-outline-info mt-1" type="button" data-bs-toggle="collapse" data-bs-target="#detalles-{{ reserva.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse" id="detalles-{{ reserva.id }}">
+                                <td colspan="8">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6>Detalles de la Reserva #{{ reserva.id }}</h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Cliente:</strong> {{ reserva.cliente.username }}</p>
+                                                    <p><strong>Email:</strong> {{ reserva.cliente.email }}</p>
+                                                    <p><strong>Fecha de reserva:</strong> {{ reserva.fecha_reserva|date:"d/m/Y H:i" }}</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Habitación:</strong> {{ reserva.habitacion.numero }} - {{ reserva.habitacion.tipo }}</p>
+                                                    <p><strong>Piso:</strong> {{ reserva.habitacion.piso }}</p>
+                                                    <p><strong>Precio por noche:</strong> ${{ reserva.habitacion.tipo.precio_por_noche }}</p>
+                                                </div>
+                                            </div>
+                                            {% if reserva.comentarios %}
+                                                <div class="mt-2">
+                                                    <strong>Comentarios del cliente:</strong>
+                                                    <p class="text-muted">{{ reserva.comentarios }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5>No hay reservas que mostrar</h5>
+                <p class="text-muted">No se encontraron reservas con los filtros seleccionados.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+

@@ -1,0 +1,197 @@
+{% extends 'hotel/base.html' %}
+
+{% block titulo %}Habitaciones - Gestor Hotel{% endblock %}
+
+{% block contenido %}
+<!-- Panel de administración -->
+{% if es_admin %}
+    <div class="admin-controls">
+        <h5 class="text-danger mb-3">
+            <i class="fas fa-cog me-2"></i>Panel de Administración
+        </h5>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="{% url 'agregar_habitacion' %}" class="btn btn-success me-2">
+                    <i class="fas fa-plus me-1"></i>Agregar Habitación
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-bed me-2"></i>Habitaciones del Hotel
+    </h2>
+</div>
+
+<!-- Filtros ACTUALIZADOS -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </h5>
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="tipo" class="form-label">Tipo de Habitación</label>
+                <select name="tipo" id="tipo" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos %}
+                        <option value="{{ tipo.nombre }}" {% if tipo.nombre == tipo_seleccionado %}selected{% endif %}>
+                            {{ tipo.get_nombre_display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="estado" class="form-label">Estado de Habitación</label>
+                <select name="estado" id="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="disponible" {% if estado_seleccionado == 'disponible' %}selected{% endif %}>Disponible</option>
+                    <option value="ocupada" {% if estado_seleccionado == 'ocupada' %}selected{% endif %}>Ocupada</option>
+                    <option value="mantenimiento" {% if estado_seleccionado == 'mantenimiento' %}selected{% endif %}>En Mantenimiento</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="disponibilidad" class="form-label">Disponibilidad Real</label>
+                <select name="disponibilidad" id="disponibilidad" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="disponible" {% if disponibilidad_seleccionada == 'disponible' %}selected{% endif %}>Sin reservas</option>
+                    <option value="reservada" {% if disponibilidad_seleccionada == 'reservada' %}selected{% endif %}>Con reservas</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'lista_habitaciones' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de habitaciones ACTUALIZADA -->
+<div class="row">
+    {% for habitacion in habitaciones %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card card-habitacion shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title">
+                            <i class="fas fa-door-open me-2"></i>Habitación {{ habitacion.numero }}
+                        </h5>
+                        <div>
+                            <!-- Estado de la habitación -->
+                            <span class="badge {% if habitacion.estado == 'disponible' %}bg-success{% elif habitacion.estado == 'ocupada' %}bg-warning{% else %}bg-danger{% endif %} badge-estado d-block mb-1">
+                                {{ habitacion.get_estado_display }}
+                            </span>
+
+                            <!-- Estado de disponibilidad real -->
+                            {% if habitacion.esta_disponible %}
+                                <span class="badge bg-info badge-estado">
+                                    <i class="fas fa-check me-1"></i>Sin reservas
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary badge-estado">
+                                    <i class="fas fa-calendar me-1"></i>Con reservas
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3 flex-grow-1">
+                        <p class="card-text">
+                            <strong>Tipo:</strong> {{ habitacion.tipo }}<br>
+                            <strong>Piso:</strong> {{ habitacion.piso }}<br>
+                            <strong>Precio:</strong> ${{ habitacion.tipo.precio_por_noche }}/noche<br>
+                            <strong>Capacidad:</strong> {{ habitacion.tipo.capacidad_maxima }} personas
+                        </p>
+
+                        {% if habitacion.descripcion %}
+                            <p class="card-text text-muted small">{{ habitacion.descripcion|truncatewords:15 }}</p>
+                        {% endif %}
+
+                        <!-- Mostrar información de reservas si las tiene -->
+                        {% if not habitacion.esta_disponible %}
+                            <div class="alert alert-warning alert-sm mt-2 p-2">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Esta habitación tiene reservas activas.</strong>
+                                    {% if habitacion.reserva_actual %}
+                                        <br>Ocupada actualmente hasta: {{ habitacion.reserva_actual.fecha_salida|date:"d/m/Y" }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-auto">
+                        {% if habitacion.esta_disponible and user.is_authenticated %}
+                            <a href="{% url 'hacer_reserva' habitacion.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-calendar-plus me-1"></i>Reservar
+                            </a>
+                        {% elif not habitacion.esta_disponible %}
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-ban me-1"></i>No disponible
+                            </button>
+                        {% elif not user.is_authenticated %}
+                            <a href="{% url 'iniciar_sesion' %}" class="btn btn-outline-primary btn-sm">
+                                Inicia sesión para reservar
+                            </a>
+                        {% endif %}
+
+                        <!-- Controles de administración ACTUALIZADOS -->
+                        {% if es_admin %}
+                            <div class="mt-2 pt-2 border-top">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fas fa-cog me-1"></i>Controles de Admin:
+                                </small>
+
+                                <!-- Cambiar estado -->
+                                <form method="POST" action="{% url 'cambiar_estado_habitacion' habitacion.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <div class="input-group input-group-sm mb-2">
+                                        <select name="nuevo_estado" class="form-select form-select-sm" required>
+                                            <option value="">Cambiar estado...</option>
+                                            <option value="disponible" {% if habitacion.estado == 'disponible' %}disabled{% endif %}>Disponible</option>
+                                            <option value="ocupada" {% if habitacion.estado == 'ocupada' %}disabled{% endif %}>Ocupada</option>
+                                            <option value="mantenimiento" {% if habitacion.estado == 'mantenimiento' %}disabled{% endif %}>Mantenimiento</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <!-- Mostrar próximas reservas -->
+                                {% with proximas=habitacion.proximas_reservas %}
+                                    {% if proximas %}
+                                        <div class="text-muted">
+                                            <small><strong>Próximas reservas:</strong></small>
+                                            {% for reserva in proximas %}
+                                                <small class="d-block">
+                                                    • {{ reserva.fecha_entrada|date:"d/m" }}-{{ reserva.fecha_salida|date:"d/m" }}
+                                                    ({{ reserva.get_estado_display }})
+                                                </small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-2"></i>
+                No se encontraron habitaciones que coincidan con los filtros seleccionados.
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
