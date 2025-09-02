@@ -1,105 +1,352 @@
 {% extends 'hotel/base.html' %}
 
-{% block titulo %}Inicio - Gestor Hotel{% endblock %}
+{% block titulo %}Inicio - Gestor de Hotel{% endblock %}
 
 {% block contenido %}
-<div class="row">
-    <div class="col-12">
-        <div class="jumbotron bg-primary text-white p-5 rounded mb-5">
-            <h1 class="display-4">Bienvenido a Hotel Manager</h1>
-            <p class="lead">El mejor sistema de gestión hotelera para administrar reservas y habitaciones.</p>
-            {% if not user.is_authenticated %}
-                <a class="btn btn-light btn-lg" href="{% url 'registrarse' %}" role="button">
-                    <i class="fas fa-user-plus me-2"></i>Regístrate Ahora
-                </a>
-            {% endif %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Bienvenido a Hotel Manager
+                </h1>
+                <p class="lead mb-4">
+                    Descubre la comodidad y el lujo en nuestro hotel.
+                    Reserva la habitación perfecta para tu estadía inolvidable.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'lista_habitaciones' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-search me-2"></i>Ver Habitaciones
+                    </a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'registrarse' %}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Registrarse
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-hotel" style="font-size: 15rem; opacity: 0.3;"></i>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<div class="row">
-    <div class="col-md-8">
-        <h2 class="mb-4">
-            <i class="fas fa-bed me-2"></i>Habitaciones Disponibles
-        </h2>
-
-        <div class="row">
-            {% for habitacion in habitaciones_disponibles %}
-                <div class="col-lg-6 mb-4">
-                    <div class="card card-habitacion shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title">
-                                    <i class="fas fa-door-open me-2"></i>Habitación {{ habitacion.numero }}
-                                </h5>
-                                <span class="badge bg-success badge-estado">{{ habitacion.get_estado_display }}</span>
+<!-- Búsqueda rápida -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">
+                    <div class="card-body p-4">
+                        <h3 class="text-center mb-4">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                            Buscar Disponibilidad
+                        </h3>
+                        <form method="get" action="{% url 'lista_habitaciones' %}">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha de entrada</label>
+                                    <input type="date" name="fecha_entrada" class="form-control"
+                                        min="{{ fecha_hoy|date:'Y-m-d' }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha de salida</label>
+                                    <input type="date" name="fecha_salida" class="form-control"
+                                        min="{{ fecha_manana|date:'Y-m-d' }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Huéspedes</label>
+                                    <select name="huespedes" class="form-control">
+                                        <option value="1">1 huésped</option>
+                                        <option value="2">2 huéspedes</option>
+                                        <option value="3">3 huéspedes</option>
+                                        <option value="4">4 huéspedes</option>
+                                        <option value="5">5+ huéspedes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search me-1"></i>Buscar
+                                    </button>
+                                </div>
                             </div>
-
-                            <p class="card-text">
-                                <strong>Tipo:</strong> {{ habitacion.tipo }}<br>
-                                <strong>Piso:</strong> {{ habitacion.piso }}<br>
-                                <strong>Precio:</strong> ${{ habitacion.tipo.precio_por_noche }}/noche
-                            </p>
-
-                            {% if habitacion.descripcion %}
-                                <p class="card-text text-muted">{{ habitacion.descripcion|truncatewords:15 }}</p>
-                            {% endif %}
-
-                            {% if user.is_authenticated %}
-                                <a href="{% url 'hacer_reserva' habitacion.id %}" class="btn btn-primary">
-                                    <i class="fas fa-calendar-plus me-1"></i>Reservar
-                                </a>
-                            {% else %}
-                                <a href="{% url 'iniciar_sesion' %}" class="btn btn-outline-primary">
-                                    Inicia sesión para reservar
-                                </a>
-                            {% endif %}
-                        </div>
+                        </form>
                     </div>
                 </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-info-circle me-2"></i>
-                        No hay habitaciones disponibles en este momento.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tipos de habitación -->
+{% if tipos_habitacion %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">
+                <i class="fas fa-bed me-2 text-primary"></i>
+                Tipos de Habitación
+            </h2>
+            <p class="text-muted">Encuentra la habitación perfecta para tu estadía</p>
+        </div>
+
+        <div class="row g-4">
+            {% for tipo in tipos_habitacion %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-door-open text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title">{{ tipo.nombre }}</h4>
+                            <p class="card-text text-muted">{{ tipo.descripcion|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i>
+                                    Hasta {{ tipo.capacidad_maxima }} personas
+                                </small>
+                                <a href="{% url 'lista_habitaciones' %}?tipo={{ tipo.id }}"
+                                class="btn btn-outline-primary btn-sm">
+                                    Ver habitaciones
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </div>
+</section>
+{% endif %}
 
-    <div class="col-md-4">
-        <h3 class="mb-4">
-            <i class="fas fa-list me-2"></i>Tipos de Habitación
-        </h3>
+<!-- Habitaciones destacadas -->
+{% if habitaciones_destacadas %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">
+                <i class="fas fa-star me-2 text-warning"></i>
+                Habitaciones Destacadas
+            </h2>
+            <p class="text-muted">Las habitaciones más populares y mejor valoradas</p>
+        </div>
 
-        {% for tipo in tipos_habitacion %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">{{ tipo.nombre|title }}</h5>
-                    <p class="card-text">
-                        <strong>Precio:</strong> ${{ tipo.precio_por_noche }}/noche<br>
-                        <strong>Capacidad:</strong> {{ tipo.capacidad_maxima }} personas
-                    </p>
-                    {% if tipo.descripcion %}
-                        <p class="card-text text-muted small">{{ tipo.descripcion|truncatewords:10 }}</p>
-                    {% endif %}
+        <div class="row g-4">
+            {% for habitacion in habitaciones_destacadas %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card habitacion-card h-100">
+                        {% if habitacion.imagen %}
+                            <img src="{{ habitacion.imagen.url }}" class="card-img-top"
+                                alt="{{ habitacion.numero }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                style="height: 200px;">
+                                <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">Habitación {{ habitacion.numero }}</h5>
+                                <span class="badge bg-success">{{ habitacion.get_estado_display }}</span>
+                            </div>
+
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-tag me-1"></i>{{ habitacion.tipo.nombre }}
+                                </small>
+                            </p>
+
+                            {% if habitacion.descripcion %}
+                                <p class="card-text">{{ habitacion.descripcion|truncatewords:12 }}</p>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="h5 text-primary mb-0">${{ habitacion.precio_por_noche }}</span>
+                                    <small class="text-muted">/ noche</small>
+                                </div>
+
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'reservar_habitacion' habitacion.id %}"
+                                    class="btn btn-primary btn-sm">
+                                        <i class="fas fa-calendar-plus me-1"></i>Reservar
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'iniciar_sesion' %}"
+                                    class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-sign-in-alt me-1"></i>Iniciar sesión
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'lista_habitaciones' %}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-eye me-2"></i>Ver Todas las Habitaciones
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Características del hotel -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">
+                <i class="fas fa-concierge-bell me-2 text-primary"></i>
+                ¿Por qué elegirnos?
+            </h2>
+            <p class="text-muted">Descubre lo que nos hace especiales</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-clock text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Disponibilidad 24/7</h5>
+                    <p class="text-muted">Atención al cliente las 24 horas del día, todos los días del año.</p>
                 </div>
             </div>
-        {% endfor %}
 
-        <div class="card bg-light">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-phone me-2"></i>Contacto
-                </h5>
-                <p class="card-text">
-                    <strong>Teléfono:</strong> +56 9 1234 5678<br>
-                    <strong>Email:</strong> info@hotel.com<br>
-                    <strong>Dirección:</strong> Av. Principal 123, Talca
-                </p>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-wifi text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>WiFi Gratuito</h5>
+                    <p class="text-muted">Internet de alta velocidad gratuito en todas las habitaciones.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-car text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Estacionamiento</h5>
+                    <p class="text-muted">Estacionamiento gratuito y seguro para todos nuestros huéspedes.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-utensils text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Restaurante</h5>
+                    <p class="text-muted">Deliciosa gastronomía local e internacional en nuestro restaurante.</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Estadísticas (si el usuario está autenticado) -->
+{% if user.is_authenticated %}
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-bed text-primary mb-3" style="font-size: 2rem;"></i>
+                        <h4 class="card-title">Habitaciones</h4>
+                        <p class="card-text text-muted">Encuentra la habitación perfecta para ti</p>
+                        <a href="{% url 'lista_habitaciones' %}" class="btn btn-primary">
+                            Explorar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-check text-success mb-3" style="font-size: 2rem;"></i>
+                        <h4 class="card-title">Mis Reservas</h4>
+                        <p class="card-text text-muted">Gestiona todas tus reservas en un solo lugar</p>
+                        <a href="{% url 'mis_reservas' %}" class="btn btn-success">
+                            Ver Reservas
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-user-circle text-info mb-3" style="font-size: 2rem;"></i>
+                        <h4 class="card-title">Mi Perfil</h4>
+                        <p class="card-text text-muted">Actualiza tu información personal</p>
+                        <a href="#" class="btn btn-info">
+                            Editar Perfil
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to action para usuarios no registrados -->
+{% if not user.is_authenticated %}
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">¿Listo para reservar?</h2>
+        <p class="lead mb-4">
+            Únete a miles de huéspedes satisfechos y disfruta de una experiencia única.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'registrarse' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Crear Cuenta
+            </a>
+            <a href="{% url 'iniciar_sesion' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    // Configurar fechas mínimas en el formulario de búsqueda
+    document.addEventListener('DOMContentLoaded', function() {
+        const fechaEntrada = document.querySelector('input[name="fecha_entrada"]');
+        const fechaSalida = document.querySelector('input[name="fecha_salida"]');
+
+        if (fechaEntrada && fechaSalida) {
+            const hoy = new Date();
+            const manana = new Date(hoy);
+            manana.setDate(hoy.getDate() + 1);
+
+            fechaEntrada.value = hoy.toISOString().split('T')[0];
+            fechaSalida.value = manana.toISOString().split('T')[0];
+
+            fechaEntrada.addEventListener('change', function() {
+                const fechaSeleccionada = new Date(this.value);
+                const fechaMinimaeSalida = new Date(fechaSeleccionada);
+                fechaMinimaeSalida.setDate(fechaSeleccionada.getDate() + 1);
+
+                fechaSalida.min = fechaMinimaeSalida.toISOString().split('T')[0];
+
+                if (fechaSalida.value <= this.value) {
+                    fechaSalida.value = fechaMinimaeSalida.toISOString().split('T')[0];
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

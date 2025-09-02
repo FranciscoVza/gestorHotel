@@ -4,50 +4,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block titulo %}Gestor Hotel{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <title>{% block titulo %}Gestor de Hotel{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
     <style>
+        :root {
+            --color-primario: #2c3e50;
+            --color-secundario: #3498db;
+            --color-acento: #e74c3c;
+            --color-exito: #27ae60;
+            --color-advertencia: #f39c12;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
         .navbar-brand {
             font-weight: bold;
-            color: #2c5aa0 !important;
+            color: var(--color-primario) !important;
         }
-        .card-habitacion {
-            transition: transform 0.2s;
-            height: 100%;
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .card-habitacion:hover {
-            transform: translateY(-5px);
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
-        .badge-estado {
-            font-size: 0.8rem;
+
+        .card:hover {
+            transform: translateY(-2px);
         }
-        .admin-controls {
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 4px solid #dc3545;
+
+        .btn-primary {
+            background-color: var(--color-secundario);
+            border-color: var(--color-secundario);
         }
-        .footer {
-            background-color: #2c5aa0;
+
+        .btn-primary:hover {
+            background-color: var(--color-primario);
+            border-color: var(--color-primario);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%);
             color: white;
-            margin-top: auto;
+            padding: 100px 0;
         }
-        body {
-            display: flex;
-            flex-direction: column;
+
+        .habitacion-card {
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .habitacion-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .estado-disponible {
+            color: var(--color-exito);
+            font-weight: bold;
+        }
+
+        .estado-ocupada {
+            color: var(--color-acento);
+            font-weight: bold;
+        }
+
+        .estado-mantenimiento {
+            color: var(--color-advertencia);
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: var(--color-primario);
+            color: white;
+            margin-top: 50px;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-secundario);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .badge {
+            font-size: 0.8em;
+        }
+
+        .sidebar {
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             min-height: 100vh;
         }
-        main {
-            flex: 1;
+
+        .sidebar .nav-link {
+            color: var(--color-primario);
+            border-radius: 8px;
+            margin: 2px 0;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--color-secundario);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--color-secundario);
+            color: white;
         }
     </style>
+
+    {% block estilos_extra %}{% endblock %}
 </head>
 <body>
     <!-- Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'inicio' %}">
                 <i class="fas fa-hotel me-2"></i>Hotel Manager
@@ -60,26 +154,35 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
+                        <a class="nav-link" href="{% url 'inicio' %}">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_habitaciones' %}">Habitaciones</a>
+                        <a class="nav-link" href="{% url 'lista_habitaciones' %}">
+                            <i class="fas fa-bed me-1"></i>Habitaciones
+                        </a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'mis_reservas' %}">Mis Reservas</a>
+                            <a class="nav-link" href="{% url 'mis_reservas' %}">
+                                <i class="fas fa-calendar-check me-1"></i>Mis Reservas
+                            </a>
                         </li>
-                        {% if es_admin %}
+                        {% if user.perfilusuario.es_administrador %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-danger" href="#" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-cog me-1"></i>Administración
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'gestionar_reservas' %}">
-                                        <i class="fas fa-calendar-check me-2"></i>Gestionar Reservas
+                                    <li><a class="dropdown-item" href="{% url 'panel_administrador' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Panel
                                     </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'agregar_habitacion' %}">
-                                        <i class="fas fa-plus me-2"></i>Agregar Habitación
+                                    <li><a class="dropdown-item" href="{% url 'gestionar_reservas' %}">
+                                        <i class="fas fa-list-ul me-2"></i>Reservas
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'gestionar_habitaciones' %}">
+                                        <i class="fas fa-door-open me-2"></i>Habitaciones
                                     </a></li>
                                 </ul>
                             </li>
@@ -90,29 +193,28 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>{{ user.username }}
-                                {% if es_admin %}
-                                    <span class="badge bg-danger ms-1">Admin</span>
-                                {% endif %}
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i>
+                                {{ user.first_name|default:user.username }}
                             </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <form method="post" action="{% url 'cerrar_sesion' %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item" style="background: none; border: none; cursor: pointer; padding: 0.25rem 1rem; width: 100%; text-align: left;">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                                        </button>
-                                    </form>
-                                </li>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'iniciar_sesion' %}">Iniciar Sesión</a>
+                            <a class="nav-link" href="{% url 'iniciar_sesion' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'registrarse' %}">Registrarse</a>
+                            <a class="btn btn-primary ms-2" href="{% url 'registrarse' %}">
+                                <i class="fas fa-user-plus me-1"></i>Registrarse
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -124,7 +226,16 @@
     {% if messages %}
         <div class="container mt-3">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
@@ -133,19 +244,58 @@
     {% endif %}
 
     <!-- Contenido principal -->
-    <main class="container my-4">
-        {% block contenido %}
-        {% endblock %}
+    <main>
+        {% block contenido %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="footer py-3 mt-5">
-        <div class="container text-center">
-            <span>&copy; 2025 Gestor Hotel. Todos los derechos reservados.</span>
+    <footer class="footer py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-hotel me-2"></i>Hotel Manager</h5>
+                    <p class="mb-0">Sistema de gestión hotelera completo y moderno.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <i class="fas fa-code me-1"></i>
+                        Desarrollado con Django
+                        <i class="fab fa-python ms-2"></i>
+                    </p>
+                    <small class="text-muted">© 2025 Hotel Manager. Todos los derechos reservados.</small>
+                </div>
+            </div>
         </div>
     </footer>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    {% block scripts %}{% endblock %}
+
+    <script>
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+
+        // Confirmation for dangerous actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const dangerousLinks = document.querySelectorAll('.btn-danger, .text-danger[href]');
+            dangerousLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    if (!confirm('¿Estás seguro de que deseas realizar esta acción?')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+
+    {% block scripts_extra %}{% endblock %}
 </body>
 </html>
