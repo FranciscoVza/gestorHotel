@@ -12,7 +12,7 @@
                 </h4>
             </div>
             <div class="card-body">
-                <!-- Información de la habitación ACTUALIZADA -->
+                <!-- Información habitacion -->
                 <div class="card bg-light mb-4">
                     <div class="card-body">
                         <h5 class="card-title">
@@ -48,7 +48,7 @@
                             <p class="mt-3 mb-0 text-muted">{{ habitacion.descripcion }}</p>
                         {% endif %}
 
-                        <!-- Mostrar próximas reservas si existen -->
+                        <!-- Mostrar reservas siguientes -->
                         {% if proximas_reservas %}
                             <div class="alert alert-info mt-3">
                                 <h6><i class="fas fa-calendar-alt me-2"></i>Próximas Reservas de esta Habitación:</h6>
@@ -97,7 +97,7 @@
                         </div>
                     </div>
 
-                    <!-- Información de cálculo de precio -->
+                    <!-- Informacion calculo de precio -->
                     <div class="row mb-3">
                         <div class="col-12">
                             <div class="card bg-light" id="calculoPrecio" style="display: none;">
@@ -106,7 +106,6 @@
                                         <i class="fas fa-calculator me-2"></i>Cálculo de Precio
                                     </h6>
                                     <div id="detallesPrecio">
-                                        <!-- Se llenará con JavaScript -->
                                     </div>
                                 </div>
                             </div>
@@ -141,7 +140,6 @@
             </div>
         </div>
 
-        <!-- Información adicional -->
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -217,7 +215,7 @@
                 }
             }
 
-            // Validar huéspedes
+            // Validar huespedes
             if (numeroHuespedes.value) {
                 const huespedes = parseInt(numeroHuespedes.value);
                 if (huespedes > capacidadMaxima) {
@@ -230,7 +228,7 @@
                 }
             }
 
-            // Actualizar botón
+            // Actualizar boton
             btnConfirmar.disabled = !esValido;
             if (!esValido) {
                 btnConfirmar.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Corrige los errores';

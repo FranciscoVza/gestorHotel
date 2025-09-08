@@ -212,7 +212,7 @@
         }
     }
 
-    // Validación de fortaleza de contraseña
+    // Validacion de fortaleza de contraseña
     document.addEventListener('DOMContentLoaded', function() {
         const password1 = document.getElementById('id_password1');
         const password2 = document.getElementById('id_password2');
@@ -231,10 +231,10 @@
                 if (password.length >= 8) strength += 25;
                 else feedback = 'La contraseña debe tener al menos 8 caracteres.';
 
-                // Verificar mayúsculas
+                // Verificar mayusculas
                 if (/[A-Z]/.test(password)) strength += 25;
 
-                // Verificar números
+                // Verificar numeros
                 if (/[0-9]/.test(password)) strength += 25;
 
                 // Verificar caracteres especiales
@@ -288,7 +288,7 @@
             }
         }
 
-        // Animación del botón de submit
+        // Animacion del boton de submit
         const form = document.getElementById('registroForm');
         const submitBtn = document.getElementById('submitBtn');
         const originalText = submitBtn.innerHTML;
@@ -304,7 +304,7 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando cuenta...';
             submitBtn.disabled = true;
 
-            // Restaurar el botón si hay errores
+            // Restaurar el boton si hay errores
             setTimeout(function() {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
