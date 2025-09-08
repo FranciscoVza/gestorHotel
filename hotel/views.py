@@ -33,6 +33,24 @@ def inicio(request):
     }
     return render(request, 'hotel/inicio.html', contexto)
 
+def actualizar_reservas_vencidas():
+    ahora = timezone.now()
+    vencidas = Reserva.objects.filter(fecha_salida__lt=ahora, estado="confirmada")
+
+    for r in vencidas:
+        r.estado = "completada"
+        r.habitacion.disponible = True
+        r.habitacion.save()
+        r.save()
+
+def lista_habitaciones(request):
+    #actualizamos las reservas vencidas antes de mostrar
+    actualizar_reservas_vencidas()
+
+    habitaciones = Habitacion.objects.all()
+    return render(request, "hotel/habitaciones.html", {"habitaciones": habitaciones})
+
+
 def lista_habitaciones(request):
     habitaciones = Habitacion.objects.all().order_by('numero')
     tipos = TipoHabitacion.objects.all()
@@ -143,13 +161,15 @@ def cambiar_estado_reserva(request, reserva_id):
     if nuevo_estado in ['pendiente', 'confirmada', 'cancelada', 'completada']:
         estado_anterior = reserva.estado
         reserva.estado = nuevo_estado
-        reserva.save()  # Esto automáticamente actualizará el estado de la habitación
+        reserva.save()  # Esto automaticamente actualizara el estado de la habitacion
 
         messages.success(request, f'Estado de reserva #{reserva.id} cambiado de "{reserva.get_estado_display()}" a "{dict(reserva.ESTADOS_RESERVA)[nuevo_estado]}".')
     else:
         messages.error(request, 'Estado de reserva inválido.')
 
     return redirect('gestionar_reservas')
+
+
 
 @user_passes_test(es_administrador)
 def cambiar_estado_habitacion(request, habitacion_id):
@@ -178,7 +198,7 @@ def cambiar_estado_habitacion(request, habitacion_id):
 
     return redirect('lista_habitaciones')
 
-# Las demás vistas permanecen igual...
+
 @login_required
 def mis_reservas(request):
     reservas = Reserva.objects.filter(cliente=request.user).order_by('-fecha_reserva')
