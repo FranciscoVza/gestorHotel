@@ -22,6 +22,7 @@ from hotel import views
 from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('', views.inicio, name='inicio'),
     path('habitaciones/', views.lista_habitaciones, name='lista_habitaciones'),
     path('reservar/<int:habitacion_id>/', views.hacer_reserva, name='hacer_reserva'),

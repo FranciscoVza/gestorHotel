@@ -8,6 +8,9 @@ from django.utils import timezone
 from datetime import datetime, date
 from .models import Habitacion, Reserva, TipoHabitacion, PerfilUsuario
 from .forms import ReservaForm, HabitacionForm, TipoHabitacionForm
+from .forms import RegistroUsuarioForm
+from django.contrib import messages
+
 
 def es_administrador(user):
     return user.is_staff or user.is_superuser
@@ -232,15 +235,33 @@ def agregar_habitacion(request):
 
     return render(request, 'hotel/agregar_habitacion.html', {'form': form})
 
+
 def registrarse(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegistroUsuarioForm(request.POST)
         if form.is_valid():
-            usuario = form.save()
-            PerfilUsuario.objects.create(usuario=usuario)
+            form.save()
             username = form.cleaned_data.get('username')
-            messages.success(request, f'Cuenta creada para {username}!')
+            messages.success(request, f'¡Cuenta creada exitosamente para {username}!')
             return redirect('iniciar_sesion')
     else:
-        form = UserCreationForm()
+        form = RegistroUsuarioForm()
+
     return render(request, 'registration/registrarse.html', {'form': form})
+
+
+
+def iniciar_sesion(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'¡Bienvenido de vuelta, {user.first_name or user.username}!')
+            return redirect('inicio')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos. Por favor, intenta de nuevo.')
+
+    return render(request, 'hotel/iniciar_sesion.html')
