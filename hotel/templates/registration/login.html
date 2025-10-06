@@ -77,12 +77,6 @@
                                     id="id_password"
                                     placeholder="Ingresa tu contraseña"
                                     required>
-                                <button type="button"
-                                        class="btn btn-outline-secondary border-start-0"
-                                        onclick="togglePassword()"
-                                        tabindex="-1">
-                                    <i class="fas fa-eye" id="toggleIcon"></i>
-                                </button>
                             </div>
                             <div class="invalid-feedback">
                                 Por favor ingresa tu contraseña.
@@ -96,7 +90,7 @@
                                 <label class="form-check-label small" for="remember">
                                     Recordarme
                                 </label>
-                            </div>
+                            </div> <!--Falta añadir esta funcionalidad-->
                             <a href="#" class="text-decoration-none text-primary small fw-semibold">
                                 ¿Olvidaste tu contraseña?
                             </a>
@@ -136,7 +130,7 @@
             <!-- Info adicional -->
             <div class="text-center mt-4">
                 <small class="text-muted">
-                    <i class="fas fa-shield-alt me-1"></i>Conexión segura y encriptada
+                    <i class="fas fa-shield-alt me-1"></i>El mejor hotel.
                 </small>
             </div>
         </div>
@@ -146,22 +140,6 @@
 
 {% block scripts_extra %}
 <script>
-    // Toggle para mostrar/ocultar contraseña
-    function togglePassword() {
-        const passwordInput = document.getElementById('id_password');
-        const toggleIcon = document.getElementById('toggleIcon');
-
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -220,18 +198,8 @@
                     passwordInput.focus();
                 }
 
-                // Shake animation
-                form.classList.add('shake-animation');
-                setTimeout(() => {
-                    form.classList.remove('shake-animation');
-                }, 500);
-
                 return;
             }
-
-            // Cambiar botón a estado de carga
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Iniciando sesión...';
-            submitBtn.disabled = true;
 
             // Enviar el formulario
             form.submit();
@@ -243,13 +211,6 @@
             }, 5000);
         });
 
-        // Enter en username pasa a password
-        usernameInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                passwordInput.focus();
-            }
-        });
 
         // Animación de entrada suave
         const card = document.querySelector('.card');
@@ -262,28 +223,10 @@
             card.style.transform = 'translateY(0)';
         }, 100);
 
-        // Auto-dismiss de alertas después de 5 segundos
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-            setTimeout(() => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }, 5000);
-        });
     });
 </script>
 
 <style>
-    /* Animación de shake para errores */
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-        20%, 40%, 60%, 80% { transform: translateX(10px); }
-    }
-
-    .shake-animation {
-        animation: shake 0.5s;
-    }
 
     /* Mejoras visuales para inputs */
     .form-control:focus {

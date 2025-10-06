@@ -117,10 +117,11 @@
                                 <div class="input-group">
                                     {{ form.password1 }}
                                     <button type="button" class="btn btn-outline-secondary"
-                                            onclick="togglePassword('id_password1', this)"
+                                            onclick="togglePassword('viewPassword', this)"
                                             tabindex="-1">
                                         <i class="fas fa-eye"></i>
                                     </button>
+
                                 </div>
 
                                 <!-- Indicador de fortaleza -->
@@ -210,7 +211,7 @@
             <!-- Info adicional -->
             <div class="text-center mt-4">
                 <small class="text-muted">
-                    <i class="fas fa-lock me-1"></i>Tus datos están protegidos y encriptados
+                    <i class="fas fa-lock me-1"></i>El mejor hotel
                 </small>
             </div>
         </div>
@@ -234,6 +235,22 @@
             icon.classList.add('fa-eye');
         }
     }
+
+
+    <!--Boton para mostrar la contraseña-->
+let password = document.getElementById('password');
+    let viewPassword = document.getElementById('viewPassword');
+    let click = false;
+
+    viewPassword.addEventListener('click', (e)=>{
+        if(!click){
+            password.type = 'text'
+            click = true
+        }else if(click){
+            password.type = 'password'
+            click = false
+        }
+    })
 
     document.addEventListener('DOMContentLoaded', function() {
         const password1 = document.getElementById('id_password1');

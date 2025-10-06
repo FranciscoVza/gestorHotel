@@ -89,7 +89,6 @@ class RegistroUsuarioForm(UserCreationForm):
         return user
 
 
-# Tus otros formularios (corregidos)
 class ReservaForm(forms.ModelForm):
     class Meta:
         model = Reserva
