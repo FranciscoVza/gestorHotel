@@ -137,6 +137,7 @@ class Reserva(models.Model):
     def __str__(self):
         return f"Reserva #{self.id} - {self.cliente.username} - Hab. {self.habitacion.numero}"
 
+    #Previene reservas invalidas o sobrecupo
     def clean(self):
         # Validaciones de integridad
         if self.fecha_entrada >= self.fecha_salida:
@@ -167,6 +168,7 @@ class Reserva(models.Model):
         precio_noche = Decimal(self.habitacion.tipo.precio_por_noche)
         return (noches * precio_noche).quantize(Decimal('0.01'))
 
+    #Para evitar estados corruptos
     @transaction.atomic
     def save(self, *args, **kwargs):
         # Ejecutar clean para validar
