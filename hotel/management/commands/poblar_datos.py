@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Poblar la base de datos con datos iniciales del hotel'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('🏨 INICIANDO POBLADO DE DATOS DEL HOTEL'))
+        self.stdout.write(self.style.SUCCESS('INICIANDO POBLADO DE DATOS DEL HOTEL'))
         self.stdout.write('='*60)
 
         # Crear tipos de habitación
@@ -38,7 +38,7 @@ class Command(BaseCommand):
             }
         ]
 
-        self.stdout.write('\n📋 PASO 1: Creando tipos de habitación...')
+        self.stdout.write('\nPASO 1: Creando tipos de habitación...')
         for tipo_data in tipos_habitacion:
             tipo, created = TipoHabitacion.objects.get_or_create(
                 nombre=tipo_data['nombre'],
@@ -46,11 +46,11 @@ class Command(BaseCommand):
             )
             if created:
                 self.stdout.write(
-                    self.style.SUCCESS(f'  ✅ Tipo "{tipo.get_nombre_display()}" - ${tipo.precio_por_noche}/noche')
+                    self.style.SUCCESS(f'Tipo "{tipo.get_nombre_display()}" - ${tipo.precio_por_noche}/noche')
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING(f'  ⚠️  Tipo "{tipo.get_nombre_display()}" ya existe')
+                    self.style.WARNING(f'Tipo "{tipo.get_nombre_display()}" ya existe')
                 )
 
         # Crear habitaciones de ejemplo
@@ -84,7 +84,7 @@ class Command(BaseCommand):
             {'numero': '402', 'tipo': 'familiar', 'piso': 4, 'descripcion': 'Habitación familiar premium con dos baños y cocina completa'},
         ]
 
-        self.stdout.write('\n🏠 PASO 2: Creando habitaciones del hotel...')
+        self.stdout.write('\nPASO 2: Creando habitaciones del hotel...')
         contador_creadas = 0
         for hab_data in habitaciones_ejemplo:
             try:
@@ -101,21 +101,21 @@ class Command(BaseCommand):
                 if created:
                     contador_creadas += 1
                     self.stdout.write(
-                        self.style.SUCCESS(f'  ✅ Habitación {habitacion.numero} - {habitacion.tipo} (Piso {habitacion.piso})')
+                        self.style.SUCCESS(f' Habitación {habitacion.numero} - {habitacion.tipo} (Piso {habitacion.piso})')
                     )
                 else:
                     self.stdout.write(
-                        self.style.WARNING(f'  ⚠️  Habitación {habitacion.numero} ya existe')
+                        self.style.WARNING(f' Habitación {habitacion.numero} ya existe')
                     )
             except TipoHabitacion.DoesNotExist:
                 self.stdout.write(
-                    self.style.ERROR(f'  ❌ Error: Tipo de habitación "{hab_data["tipo"]}" no encontrado')
+                    self.style.ERROR(f' Error: Tipo de habitación "{hab_data["tipo"]}" no encontrado')
                 )
 
-        self.stdout.write(f'\n  📊 Total habitaciones creadas: {contador_creadas}')
+        self.stdout.write(f'\n  Total habitaciones creadas: {contador_creadas}')
 
         # Crear usuario administrador
-        self.stdout.write('\n👤 PASO 3: Creando usuarios de ejemplo...')
+        self.stdout.write('\nPASO 3: Creando usuarios de ejemplo...')
 
         # Administrador
         admin_user, created = User.objects.get_or_create(
@@ -139,11 +139,11 @@ class Command(BaseCommand):
                 direccion='Hotel Principal, Av. Central 123, Talca'
             )
             self.stdout.write(
-                self.style.SUCCESS('  ✅ Administrador: admin_hotel / admin123')
+                self.style.SUCCESS('  Administrador: admin_hotel / admin123')
             )
         else:
             self.stdout.write(
-                self.style.WARNING('  ⚠️  Usuario administrador ya existe')
+                self.style.WARNING('  Usuario administrador ya existe')
             )
 
         # Cliente demo 1
@@ -168,11 +168,11 @@ class Command(BaseCommand):
                 direccion='Calle Los Aromos 456, Talca'
             )
             self.stdout.write(
-                self.style.SUCCESS('  ✅ Cliente Demo 1: cliente_demo / cliente123')
+                self.style.SUCCESS('  Cliente Demo 1: cliente_demo / cliente123')
             )
         else:
             self.stdout.write(
-                self.style.WARNING('  ⚠️  Usuario cliente_demo ya existe')
+                self.style.WARNING('  Usuario cliente_demo ya existe')
             )
 
         # Cliente demo 2
@@ -197,46 +197,46 @@ class Command(BaseCommand):
                 direccion='Pasaje Las Flores 789, Talca'
             )
             self.stdout.write(
-                self.style.SUCCESS('  ✅ Cliente Demo 2: maria_client / maria123')
+                self.style.SUCCESS('  Cliente Demo 2: maria_client / maria123')
             )
         else:
             self.stdout.write(
-                self.style.WARNING('  ⚠️  Usuario maria_client ya existe')
+                self.style.WARNING('  Usuario maria_client ya existe')
             )
 
         # Estadísticas finales
-        self.stdout.write('\n📊 RESUMEN FINAL')
+        self.stdout.write('\nRESUMEN FINAL')
         self.stdout.write('='*60)
-        self.stdout.write(f'✨ Tipos de habitación: {TipoHabitacion.objects.count()}')
-        self.stdout.write(f'🏠 Total habitaciones: {Habitacion.objects.count()}')
-        self.stdout.write(f'👥 Total usuarios: {User.objects.count()}')
-        self.stdout.write(f'📝 Perfiles creados: {PerfilUsuario.objects.count()}')
+        self.stdout.write(f'Tipos de habitación: {TipoHabitacion.objects.count()}')
+        self.stdout.write(f'Total habitaciones: {Habitacion.objects.count()}')
+        self.stdout.write(f'Total usuarios: {User.objects.count()}')
+        self.stdout.write(f'Perfiles creados: {PerfilUsuario.objects.count()}')
 
         # Estadísticas por tipo
-        self.stdout.write('\n🏷️  HABITACIONES POR TIPO:')
+        self.stdout.write('\nHABITACIONES POR TIPO:')
         for tipo in TipoHabitacion.objects.all():
             cantidad = Habitacion.objects.filter(tipo=tipo).count()
             self.stdout.write(f'  • {tipo.get_nombre_display()}: {cantidad} habitaciones (${tipo.precio_por_noche}/noche)')
 
         # Estadísticas por piso
-        self.stdout.write('\n🏢 HABITACIONES POR PISO:')
+        self.stdout.write('\nHABITACIONES POR PISO:')
         for piso in range(1, 5):
             cantidad = Habitacion.objects.filter(piso=piso).count()
             if cantidad > 0:
                 self.stdout.write(f'  • Piso {piso}: {cantidad} habitaciones')
 
         self.stdout.write('\n' + '='*60)
-        self.stdout.write(self.style.SUCCESS('🎉 ¡DATOS INICIALES CREADOS EXITOSAMENTE!'))
+        self.stdout.write(self.style.SUCCESS('¡DATOS INICIALES CREADOS EXITOSAMENTE!'))
         self.stdout.write('='*60)
 
-        self.stdout.write('\n📋 USUARIOS DE PRUEBA:')
-        self.stdout.write('  🔐 Administrador: admin_hotel / admin123')
-        self.stdout.write('  👤 Cliente 1: cliente_demo / cliente123')
-        self.stdout.write('  👤 Cliente 2: maria_client / maria123')
+        self.stdout.write('\nUSUARIOS DE PRUEBA:')
+        self.stdout.write('  Administrador: admin_hotel / admin123')
+        self.stdout.write('  Cliente 1: cliente_demo / cliente123')
+        self.stdout.write('  Cliente 2: maria_client / maria123')
 
-        self.stdout.write('\n🚀 PRÓXIMOS PASOS:')
+        self.stdout.write('\nPRÓXIMOS PASOS:')
         self.stdout.write('  1. python manage.py runserver')
         self.stdout.write('  2. Visitar: http://127.0.0.1:8000')
         self.stdout.write('  3. ¡Probar el sistema con los usuarios creados!')
 
-        self.stdout.write('\n✨ ¡El gestor de hotel está listo para usar!')
+        self.stdout.write('\n¡El gestor de hotel está listo para usar!')
