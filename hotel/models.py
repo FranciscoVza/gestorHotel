@@ -68,14 +68,14 @@ class Habitacion(models.Model):
         return not reservas_conflicto.exists()
 
     def proximas_reservas(self):
-        """Obtener las próximas reservas de esta habitación"""
+        "Obtener las próximas reservas de esta habitación"
         return self.reserva_set.filter(
             estado__in=['pendiente', 'confirmada'],
             fecha_entrada__gte=date.today()
         ).order_by('fecha_entrada')[:3]
 
     def reserva_actual(self):
-        """Obtener la reserva actual si existe"""
+        "Obtener la reserva actual si existe"
         hoy = date.today()
         return self.reserva_set.filter(
             estado='confirmada',
@@ -179,7 +179,3 @@ class PerfilUsuario(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
-
-    class Meta:
-        verbose_name = "Perfil de Usuario"
-        verbose_name_plural = "Perfiles de Usuario"
