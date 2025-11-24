@@ -20,7 +20,7 @@
                         <i class="fas fa-search me-2"></i>Ver Habitaciones
                     </a>
                     {% if not user.is_authenticated %}
-                        <a href="{% url 'registrarse' %}" class="btn btn-light  btn-lg">
+                        <a href="{% url 'registrarse' %}" class="btn btn-outline-light btn-lg">
                             <i class="fas fa-user-plus me-2"></i>Registrarse
                         </a>
                     {% endif %}
