@@ -30,10 +30,10 @@ urlpatterns = [
     path('registrarse/', views.registrarse, name='registrarse'),
 
 
-    path('admin/reservas/', views.gestionar_reservas, name='gestionar_reservas'),
-    path('admin/reserva/<int:reserva_id>/cambiar-estado/', views.cambiar_estado_reserva, name='cambiar_estado_reserva'),
-    path('admin/habitacion/<int:habitacion_id>/cambiar-estado/', views.cambiar_estado_habitacion, name='cambiar_estado_habitacion'),
-    path('admin/agregar-habitacion/', views.agregar_habitacion, name='agregar_habitacion'),
+    path('reservas/', views.gestionar_reservas, name='gestionar_reservas'),
+    path('reserva/<int:reserva_id>/cambiar-estado/', views.cambiar_estado_reserva, name='cambiar_estado_reserva'),
+    path('habitacion/<int:habitacion_id>/cambiar-estado/', views.cambiar_estado_habitacion, name='cambiar_estado_habitacion'),
+    path('agregar-habitacion/', views.agregar_habitacion, name='agregar_habitacion'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='iniciar_sesion'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='cerrar_sesion'),
     path("accounts/logout/", LogoutView.as_view, name="logout"),

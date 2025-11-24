@@ -8,9 +8,6 @@ from django.utils import timezone
 from datetime import datetime, date
 from .models import Habitacion, Reserva, TipoHabitacion, PerfilUsuario
 from .forms import ReservaForm, HabitacionForm, TipoHabitacionForm
-from .forms import RegistroUsuarioForm
-from django.contrib import messages
-
 
 def es_administrador(user):
     return user.is_staff or user.is_superuser
@@ -41,9 +38,15 @@ def actualizar_reservas_vencidas():
     vencidas = Reserva.objects.filter(fecha_salida__lt=ahora, estado="confirmada")
 
     for r in vencidas:
-        r.estado = "completada"
-        r.habitacion.disponible = True
-        r.habitacion.save()
+        # Si por alguna razón la reserva no tiene habitación → evitar el error
+        if r.habitacion:
+            r.estado = "completada"
+            r.habitacion.disponible = True
+            r.habitacion.save()
+        else:
+            # log opcional si quieres saber cuáles reservas están dañadas
+            print(f"⚠️ Reserva sin habitación: ID {r.id}")
+
         r.save()
 
 def lista_habitaciones(request):
@@ -96,20 +99,27 @@ def lista_habitaciones(request):
 def hacer_reserva(request, habitacion_id):
     habitacion = get_object_or_404(Habitacion, id=habitacion_id)
 
-    # Verificar disponibilidad real (no solo el estado)
+    # Verificar disponibilidad general
     if not habitacion.esta_disponible():
-        messages.error(request, 'Esta habitación no está disponible para reservas. Tiene reservas pendientes o confirmadas.')
+        messages.error(request, 'Esta habitación no está disponible para reservas.')
         return redirect('lista_habitaciones')
 
     if request.method == 'POST':
         form = ReservaForm(request.POST)
+
         if form.is_valid():
             reserva = form.save(commit=False)
-            reserva.cliente = request.user
-            reserva.habitacion = habitacion
 
-            # Validar fechas
-            if reserva.fecha_entrada < date.today():
+            # ASIGNACIÓN CRÍTICA (evita RelatedObjectDoesNotExist)
+            reserva.habitacion = habitacion
+            reserva.cliente = request.user
+
+            # Obtener fechas desde el form
+            fecha_entrada = reserva.fecha_entrada
+            fecha_salida = reserva.fecha_salida
+
+            # Validaciones manuales antes de guardar
+            if fecha_entrada < date.today():
                 messages.error(request, 'La fecha de entrada no puede ser anterior a hoy.')
                 return render(request, 'hotel/hacer_reserva.html', {
                     'form': form,
@@ -117,7 +127,7 @@ def hacer_reserva(request, habitacion_id):
                     'proximas_reservas': habitacion.proximas_reservas()
                 })
 
-            if reserva.fecha_salida <= reserva.fecha_entrada:
+            if fecha_salida <= fecha_entrada:
                 messages.error(request, 'La fecha de salida debe ser posterior a la fecha de entrada.')
                 return render(request, 'hotel/hacer_reserva.html', {
                     'form': form,
@@ -125,9 +135,9 @@ def hacer_reserva(request, habitacion_id):
                     'proximas_reservas': habitacion.proximas_reservas()
                 })
 
-            # Verificar disponibilidad para las fechas específicas
-            if not habitacion.esta_disponible(reserva.fecha_entrada, reserva.fecha_salida):
-                messages.error(request, 'La habitación no está disponible para las fechas seleccionadas. Hay conflictos con otras reservas.')
+            # Verificar disponibilidad en el rango solicitado
+            if not habitacion.esta_disponible(fecha_entrada, fecha_salida):
+                messages.error(request, 'La habitación no está disponible en esas fechas.')
                 return render(request, 'hotel/hacer_reserva.html', {
                     'form': form,
                     'habitacion': habitacion,
@@ -135,25 +145,31 @@ def hacer_reserva(request, habitacion_id):
                 })
 
             # Validar capacidad
-            if reserva.numero_huespedes > habitacion.tipo.capacidad_maxima:
-                messages.error(request, f'Esta habitación tiene capacidad máxima para {habitacion.tipo.capacidad_maxima} huéspedes.')
+            capacidad_max = habitacion.tipo.capacidad_maxima
+            if reserva.numero_huespedes > capacidad_max:
+                messages.error(request, f'Esta habitación tiene capacidad máxima para {capacidad_max} huéspedes.')
                 return render(request, 'hotel/hacer_reserva.html', {
                     'form': form,
                     'habitacion': habitacion,
                     'proximas_reservas': habitacion.proximas_reservas()
                 })
 
-            reserva.save()  # Esto automáticamente actualizará el estado de la habitación
+            # Guardar la reserva
+            reserva.save()
+
             messages.success(request, '¡Reserva realizada exitosamente! Tu reserva está pendiente de confirmación.')
             return redirect('mis_reservas')
+
     else:
         form = ReservaForm()
 
+    # Render inicial
     contexto = {
         'form': form,
         'habitacion': habitacion,
         'proximas_reservas': habitacion.proximas_reservas()
     }
+
     return render(request, 'hotel/hacer_reserva.html', contexto)
 
 @user_passes_test(es_administrador)
@@ -235,33 +251,15 @@ def agregar_habitacion(request):
 
     return render(request, 'hotel/agregar_habitacion.html', {'form': form})
 
-
 def registrarse(request):
     if request.method == 'POST':
-        form = RegistroUsuarioForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            usuario = form.save()
+            PerfilUsuario.objects.create(usuario=usuario)
             username = form.cleaned_data.get('username')
-            messages.success(request, f'¡Cuenta creada exitosamente para {username}!')
+            messages.success(request, f'Cuenta creada para {username}!')
             return redirect('iniciar_sesion')
     else:
-        form = RegistroUsuarioForm()
-
+        form = UserCreationForm()
     return render(request, 'registration/registrarse.html', {'form': form})
-
-
-
-def iniciar_sesion(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            messages.success(request, f'¡Bienvenido de vuelta, {user.first_name or user.username}!')
-            return redirect('inicio')
-        else:
-            messages.error(request, 'Usuario o contraseña incorrectos. Por favor, intenta de nuevo.')
-
-    return render(request, 'hotel/iniciar_sesion.html')
