@@ -137,53 +137,39 @@ class Reserva(models.Model):
     def __str__(self):
         return f"Reserva #{self.id} - {self.cliente.username} - Hab. {self.habitacion.numero}"
 
-    # ---------------------------------------------------------------
-    # VALIDACIONES
-    # ---------------------------------------------------------------
-    def clean(self):
-        from datetime import date
+    #Previene reservas invalidas o sobrecupo
+def clean(self):
+    # Si falta alguna fecha, no validar aún
+    if not self.fecha_entrada or not self.fecha_salida:
+        return
 
-        if not self.habitacion_id:
-            return
+    # Validación de fechas
+    if self.fecha_entrada >= self.fecha_salida:
+        raise ValidationError("La fecha de entrada debe ser anterior a la de salida.")
 
-        # Fechas
-        if self.fecha_entrada and self.fecha_salida:
-            if self.fecha_entrada >= self.fecha_salida:
-                raise ValidationError("La fecha de entrada debe ser anterior a la de salida.")
+    # Validar número de huéspedes
+    if self.numero_huespedes < 1:
+        raise ValidationError("La reserva debe tener al menos 1 huésped.")
 
-            if self.fecha_entrada < date.today():
-                raise ValidationError("La fecha de entrada no puede ser anterior a hoy.")
-
-        else:
-            return
-
-        # Huéspedes
-        if not self.numero_huespedes or self.numero_huespedes < 1:
-            raise ValidationError("La reserva debe tener al menos 1 huésped.")
-
-        capacidad = self.habitacion.tipo.capacidad_maxima
-        if self.numero_huespedes > capacidad:
-            raise ValidationError(
-                f"Número de huéspedes ({self.numero_huespedes}) excede la capacidad ({capacidad})."
-            )
-
-        # Solapamiento
-        conflictos = Reserva.objects.filter(
-            habitacion=self.habitacion,
-            estado__in=['pendiente', 'confirmada'],
-            fecha_entrada__lt=self.fecha_salida,
-            fecha_salida__gt=self.fecha_entrada
+    capacidad = self.habitacion.tipo.capacidad_maxima
+    if self.numero_huespedes > capacidad:
+        raise ValidationError(
+            f"Número de huéspedes ({self.numero_huespedes}) excede la capacidad ({capacidad})."
         )
 
-        if self.pk:
-            conflictos = conflictos.exclude(pk=self.pk)
+    # Validar solapamiento
+    conflictos = Reserva.objects.filter(
+        habitacion=self.habitacion,
+        estado__in=['pendiente', 'confirmada'],
+        fecha_entrada__lt=self.fecha_salida,
+        fecha_salida__gt=self.fecha_entrada
+    )
+    if self.pk:
+        conflictos = conflictos.exclude(pk=self.pk)
+    if conflictos.exists():
+        raise ValidationError("La habitación no está disponible en ese rango de fechas.")
 
-        if conflictos.exists():
-            raise ValidationError("La habitación no está disponible en ese rango de fechas.")
 
-    # ---------------------------------------------------------------
-    # CÁLCULO DEL PRECIO
-    # ---------------------------------------------------------------
     def calcular_noches(self):
         return (self.fecha_salida - self.fecha_entrada).days
 
@@ -192,40 +178,39 @@ class Reserva(models.Model):
         precio_noche = Decimal(self.habitacion.tipo.precio_por_noche)
         return (noches * precio_noche).quantize(Decimal('0.01'))
 
-    # ---------------------------------------------------------------
-    # SAVE
-    # ---------------------------------------------------------------
+    #Para evitar estados corruptos
     @transaction.atomic
     def save(self, *args, **kwargs):
-        self.full_clean()  # Valida antes de guardar
+        # Ejecutar clean para validar
+        self.full_clean()
 
+        # Calcular precio si no está establecido
         if self.precio_total in (None, Decimal('0.00')):
             self.precio_total = self._calcular_precio()
 
         super().save(*args, **kwargs)
 
-        # Actualizar estado de la habitación
+        # Actualizar estado de la habitación después de guardar
         self.actualizar_estado_habitacion()
 
-    # ---------------------------------------------------------------
-    # ACTUALIZAR ESTADO DE LA HABITACIÓN
-    # ---------------------------------------------------------------
     def actualizar_estado_habitacion(self):
+        """
+        Determina el estado de la habitación según reservas activas.
+        - Si existe una reserva confirmada en curso -> ocupada.
+        - Si no hay reservas activas -> disponible.
+        - Si hay reservas pero no confirmadas -> mantener 'disponible' o 'mantenimiento' según negocio.
+        """
         hoy = date.today()
         habitacion = self.habitacion
 
-        # Ocupada si hay una reserva confirmada en curso
-        if Reserva.objects.filter(
-            habitacion=habitacion,
-            estado='confirmada',
-            fecha_entrada__lte=hoy,
-            fecha_salida__gt=hoy
-        ).exists():
+        # Si existe alguna reserva confirmada que incluye hoy -> ocupada
+        if Reserva.objects.filter(habitacion=habitacion, estado='confirmada',
+                                fecha_entrada__lte=hoy, fecha_salida__gt=hoy).exists():
             habitacion.estado = 'ocupada'
             habitacion.save(update_fields=['estado'])
             return
 
-        # Disponible si no hay reservas activas
+        # Si no hay reservas activas (pendiente/confirmada) en o después de hoy -> disponible
         otras_reservas_activas = Reserva.objects.filter(
             habitacion=habitacion,
             estado__in=['pendiente', 'confirmada'],
@@ -236,9 +221,6 @@ class Reserva(models.Model):
             habitacion.estado = 'disponible'
             habitacion.save(update_fields=['estado'])
 
-    # ---------------------------------------------------------------
-    # DELETE
-    # ---------------------------------------------------------------
     def delete(self, *args, **kwargs):
         habitacion = self.habitacion
         super().delete(*args, **kwargs)
