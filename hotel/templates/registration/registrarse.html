@@ -102,6 +102,22 @@
                             {% endif %}
                         </div>
 
+                        <!-- Dirección -->
+                        <div class="mb-3">
+                            <label for="id_direccion" class="form-label fw-semibold">
+                                <i class="fas fa-map-marker-alt text-primary me-1"></i>{{ form.direccion.label }}
+                                <span class="badge bg-secondary bg-opacity-25 text-dark ms-1">Opcional</span>
+                            </label>
+                            {{ form.direccion }}
+                            {% if form.direccion.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.direccion.errors %}
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
                         <!-- Separador visual -->
                         <hr class="my-4 text-muted">
                         <h5 class="fw-semibold mb-3">
@@ -227,22 +243,6 @@
         }
     }
 
-
-    <!--Boton para mostrar la contraseña-->
-let password = document.getElementById('password');
-    let viewPassword = document.getElementById('viewPassword');
-    let click = false;
-
-    viewPassword.addEventListener('click', (e)=>{
-        if(!click){
-            password.type = 'text'
-            click = true
-        }else if(click){
-            password.type = 'password'
-            click = false
-        }
-    })
-
     document.addEventListener('DOMContentLoaded', function() {
         const password1 = document.getElementById('id_password1');
         const password2 = document.getElementById('id_password2');
@@ -292,7 +292,7 @@ let password = document.getElementById('password');
                 passwordHelp.innerHTML = feedback;
 
                 // Verificar coincidencia si password2 tiene valor
-                if (password2.value) {
+                if (password2 && password2.value) {
                     checkPasswordMatch();
                 }
             });
@@ -304,7 +304,7 @@ let password = document.getElementById('password');
         }
 
         function checkPasswordMatch() {
-            if (password2.value === '') {
+            if (!password2 || password2.value === '') {
                 passwordMatch.style.display = 'none';
                 return;
             }
@@ -321,57 +321,6 @@ let password = document.getElementById('password');
             }
         }
 
-        // Manejo del formulario
-        const form = document.getElementById('registroForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const originalText = submitBtn.innerHTML;
-
-        form.addEventListener('submit', function(e) {
-            const terminos = document.getElementById('terminos');
-
-            if (!terminos.checked) {
-                e.preventDefault();
-
-                // Resaltar el checkbox
-                terminos.classList.add('is-invalid');
-
-                // Mostrar alerta
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-warning alert-dismissible fade show mt-3';
-                alert.innerHTML = `
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Debes aceptar los términos y condiciones para continuar.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-
-                terminos.closest('.form-check').after(alert);
-
-                // Scroll hacia el checkbox
-                terminos.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-            }
-
-            // Animación del botón
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando cuenta...';
-            submitBtn.disabled = true;
-
-            // Restaurar después de 8 segundos por si hay errores
-            setTimeout(function() {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 8000);
-        });
-
-        // Remover invalid del checkbox cuando se marque
-        const terminosCheckbox = document.getElementById('terminos');
-        terminosCheckbox.addEventListener('change', function() {
-            this.classList.remove('is-invalid');
-            const alert = this.closest('.card-body').querySelector('.alert-warning');
-            if (alert) {
-                alert.remove();
-            }
-        });
-
         // Auto-focus en el primer campo
         const firstNameField = document.getElementById('id_first_name');
         if (firstNameField) {
@@ -379,10 +328,11 @@ let password = document.getElementById('password');
         }
 
         // Validación en tiempo real de campos requeridos
+        const form = document.getElementById('registroForm');
         const requiredFields = form.querySelectorAll('[required]');
         requiredFields.forEach(field => {
             field.addEventListener('blur', function() {
-                if (this.value.trim() === '' && this.id !== 'terminos') {
+                if (this.value.trim() === '') {
                     this.classList.add('is-invalid');
                 } else {
                     this.classList.remove('is-invalid');

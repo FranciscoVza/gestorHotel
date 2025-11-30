@@ -24,17 +24,31 @@ from django.contrib.auth.views import LogoutView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.inicio, name='inicio'),
+
+    # NUEVAS RUTAS - Búsqueda por fechas
+    path('buscar/', views.buscar_habitaciones, name='buscar_habitaciones'),
+    path('disponibles/<str:fecha_entrada>/<str:fecha_salida>/',
+        views.habitaciones_disponibles,
+        name='habitaciones_disponibles'),
+
+    # Rutas de habitaciones
     path('habitaciones/', views.lista_habitaciones, name='lista_habitaciones'),
+
+    # Rutas de reservas (modificadas para soportar fechas)
     path('reservar/<int:habitacion_id>/', views.hacer_reserva, name='hacer_reserva'),
+    path('reservar/<int:habitacion_id>/<str:fecha_entrada>/<str:fecha_salida>/',
+        views.hacer_reserva,
+        name='hacer_reserva_con_fechas'),
     path('mis-reservas/', views.mis_reservas, name='mis_reservas'),
-    path('registrarse/', views.registrarse, name='registrarse'),
 
-
+    # Gestión (admin)
     path('reservas/', views.gestionar_reservas, name='gestionar_reservas'),
     path('reserva/<int:reserva_id>/cambiar-estado/', views.cambiar_estado_reserva, name='cambiar_estado_reserva'),
     path('habitacion/<int:habitacion_id>/cambiar-estado/', views.cambiar_estado_habitacion, name='cambiar_estado_habitacion'),
     path('agregar-habitacion/', views.agregar_habitacion, name='agregar_habitacion'),
+
+    # Autenticación
+    path('registrarse/', views.registrarse, name='registrarse'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='iniciar_sesion'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='cerrar_sesion'),
-    path("accounts/logout/", LogoutView.as_view, name="logout"),
 ]

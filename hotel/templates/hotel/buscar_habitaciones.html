@@ -1,0 +1,121 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Buscar Habitaciones - Hotel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-search"></i> Buscar Habitaciones Disponibles
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Mensajes de error -->
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <p class="text-muted mb-4">
+                        Selecciona las fechas de tu estadía para ver las habitaciones disponibles.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_entrada" class="form-label">
+                                    <i class="fas fa-calendar-check"></i> Fecha de Entrada
+                                </label>
+                                <input type="date"
+                                      class="form-control form-control-lg"
+                                      id="fecha_entrada"
+                                      name="fecha_entrada"
+                                      min="{{ hoy }}"
+                                      required>
+                                <small class="form-text text-muted">
+                                    Fecha de check-in
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_salida" class="form-label">
+                                    <i class="fas fa-calendar-times"></i> Fecha de Salida
+                                </label>
+                                <input type="date"
+                                      class="form-control form-control-lg"
+                                      id="fecha_salida"
+                                      name="fecha_salida"
+                                      min="{{ hoy }}"
+                                      required>
+                                <small class="form-text text-muted">
+                                    Fecha de check-out
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search"></i> Buscar Habitaciones
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-muted mb-2">¿Necesitas ayuda?</p>
+                        <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Volver al Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle text-info"></i> Información Importante
+                    </h5>
+                    <ul class="mb-0">
+                        <li>El check-in es a partir de las 15:00 hrs</li>
+                        <li>El check-out es hasta las 12:00 hrs</li>
+                        <li>Solo se mostrarán habitaciones disponibles para tus fechas</li>
+                        <li>Los precios pueden variar según la temporada</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validación adicional en el cliente
+    document.getElementById('fecha_entrada').addEventListener('change', function() {
+        const fechaEntrada = new Date(this.value);
+        const fechaSalidaInput = document.getElementById('fecha_salida');
+
+        // Establecer la fecha mínima de salida como un día después de la entrada
+        const fechaMinimaSalida = new Date(fechaEntrada);
+        fechaMinimaSalida.setDate(fechaMinimaSalida.getDate() + 1);
+
+        fechaSalidaInput.min = fechaMinimaSalida.toISOString().split('T')[0];
+
+        // Si la fecha de salida es anterior o igual a la de entrada, limpiarla
+        if (fechaSalidaInput.value && new Date(fechaSalidaInput.value) <= fechaEntrada) {
+            fechaSalidaInput.value = '';
+        }
+    });
+</script>
+{% endblock %}
