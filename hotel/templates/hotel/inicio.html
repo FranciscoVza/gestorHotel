@@ -44,7 +44,8 @@
                             <i class="fas fa-calendar-alt me-2 text-primary"></i>
                             Buscar Disponibilidad
                         </h3>
-                        <form method="get" action="{% url 'lista_habitaciones' %}">
+                        <form id="busqueda-form" method="post" action="{% url 'buscar_habitaciones' %}">
+                            {% csrf_token %}
                             <div class="row g-3">
                                 <div class="col-md-3">
                                     <label class="form-label">Fecha de entrada</label>
@@ -57,13 +58,12 @@
                                         min="{{ fecha_manana|date:'Y-m-d' }}" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">Huéspedes</label>
-                                    <select name="huespedes" class="form-control">
-                                        <option value="1">1 huésped</option>
-                                        <option value="2">2 huéspedes</option>
-                                        <option value="3">3 huéspedes</option>
-                                        <option value="4">4 huéspedes</option>
-                                        <option value="5">5+ huéspedes</option>
+                                    <label class="form-label">Tipo de habitación</label>
+                                    <select name="tipo" class="form-control">
+                                        <option value="">— Cualquiera —</option>
+                                        {% for tipo in tipos_habitacion %}
+                                            <option value="{{ tipo.nombre }}">{{ tipo.get_nombre_display }}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end">
@@ -322,33 +322,40 @@
 
 {% block scripts_extra %}
 <script>
-    // Configurar fechas mínimas en el formulario de búsqueda
+    // Ajustes mínimos de fecha en el formulario de búsqueda (no intercepta envío)
     document.addEventListener('DOMContentLoaded', function() {
-        const fechaEntrada = document.querySelector('input[name="fecha_entrada"]');
-        const fechaSalida = document.querySelector('input[name="fecha_salida"]');
+        const formulario = document.getElementById('busqueda-form');
+        const fechaEntrada = formulario ? formulario.querySelector('input[name="fecha_entrada"]') : null;
+        const fechaSalida = formulario ? formulario.querySelector('input[name="fecha_salida"]') : null;
 
-        if (fechaEntrada && fechaSalida) {
-            const hoy = new Date();
-            const manana = new Date(hoy);
-            manana.setDate(hoy.getDate() + 1);
+        if (!fechaEntrada || !fechaSalida) return;
 
-            fechaEntrada.value = hoy.toISOString().split('T')[0];
-            fechaSalida.value = manana.toISOString().split('T')[0];
+        // Usar valores del servidor si están disponibles, si no calcular en cliente
+        const hoyServer = '{{ fecha_hoy|date:"Y-m-d" }}';
+        const mananaServer = '{{ fecha_manana|date:"Y-m-d" }}';
 
-            fechaEntrada.addEventListener('change', function() {
-                const fechaSeleccionada = new Date(this.value);
-                const fechaMinimaeSalida = new Date(fechaSeleccionada);
-                fechaMinimaeSalida.setDate(fechaSeleccionada.getDate() + 1);
+        const hoy = hoyServer || new Date().toISOString().split('T')[0];
+        const manana = mananaServer || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
 
-                fechaSalida.min = fechaMinimaeSalida.toISOString().split('T')[0];
+        fechaEntrada.min = hoy;
+        fechaEntrada.value = hoy;
 
-                if (fechaSalida.value <= this.value) {
-                    fechaSalida.value = fechaMinimaeSalida.toISOString().split('T')[0];
-                }
-            });
-        }
+        fechaSalida.min = manana;
+        fechaSalida.value = manana;
+
+        fechaEntrada.addEventListener('change', function() {
+            if (!this.value) return;
+            const fechaSeleccionada = new Date(this.value);
+            const fechaMinimaeSalida = new Date(fechaSeleccionada);
+            fechaMinimaeSalida.setDate(fechaSeleccionada.getDate() + 1);
+            const fechaMinimaeSalidaStr = fechaMinimaeSalida.toISOString().split('T')[0];
+            fechaSalida.min = fechaMinimaeSalidaStr;
+            if (fechaSalida.value < fechaMinimaeSalidaStr) {
+                fechaSalida.value = fechaMinimaeSalidaStr;
+            }
+        });
+
+        // Dejar que el formulario realice el POST a la vista 'buscar_habitaciones'
     });
-
-
 </script>
 {% endblock %}

@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.core.mail import send_mail
 from datetime import datetime, date, timedelta
+from django.urls import reverse
 from .models import Habitacion, Reserva, TipoHabitacion, PerfilUsuario
 from .forms import ReservaForm, HabitacionForm, TipoHabitacionForm, RegistroUsuarioForm
 from .email_utils import enviar_confirmacion_reserva
@@ -89,10 +90,15 @@ def buscar_habitaciones(request):
                 'hoy': date.today().isoformat()
             })
 
-        # Redirigir a la vista de habitaciones disponibles con las fechas
-        return redirect('habitaciones_disponibles',
-                    fecha_entrada=fecha_entrada_str,
-                    fecha_salida=fecha_salida_str)
+        # Obtener tipo (opcional) y redirigir a la vista de habitaciones disponibles
+        tipo = request.POST.get('tipo')
+        url = reverse('habitaciones_disponibles', kwargs={
+            'fecha_entrada': fecha_entrada_str,
+            'fecha_salida': fecha_salida_str,
+        })
+        if tipo:
+            url = f"{url}?tipo={tipo}"
+        return redirect(url)
 
     return render(request, 'hotel/buscar_habitaciones.html', {
         'hoy': date.today().isoformat()
